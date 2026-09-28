@@ -1,0 +1,6 @@
+{
+  "name": "SkillTwin AI",
+  "description": "Personalized digital career twin for students to identify skill gaps, master custom roadmaps, build recommended projects, and practice AI interviews.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
