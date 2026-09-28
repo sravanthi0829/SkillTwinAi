@@ -56,6 +56,7 @@ export default function App() {
   const [backendAnalysisReady, setBackendAnalysisReady] = useState(false);
   const [pendingAnalysis, setPendingAnalysis] = useState<SkillTwinAnalysis | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMode, setChatMode] = useState<'skilltwin' | 'n8n'>('skilltwin');
   const [interviewScores, setInterviewScores] = useState<number[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('skilltwin_interview_scores');
@@ -69,6 +70,11 @@ export default function App() {
     }
     return [82];
   });
+
+  const handleOpenChat = (mode: 'skilltwin' | 'n8n' = 'skilltwin') => {
+    setChatMode(mode);
+    setIsChatOpen(true);
+  };
 
   // Save changes to localStorage
   useEffect(() => {
@@ -148,7 +154,7 @@ export default function App() {
         hasProfile={hasCompleteTwin}
         profile={profile}
         onReset={handleReset}
-        onOpenChat={() => setIsChatOpen(true)}
+        onOpenChat={handleOpenChat}
       />
 
       {/* Main Content Area */}
@@ -171,7 +177,7 @@ export default function App() {
                   setActiveTab(tab);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                onOpenChat={() => setIsChatOpen(true)}
+                onOpenChat={() => handleOpenChat('skilltwin')}
               />
             )}
 
@@ -228,32 +234,62 @@ export default function App() {
         />
       )}
 
-      {/* Ask Your SkillTwin Chat Drawer */}
-      {hasCompleteTwin && profile && (
-        <SkillTwinChat
-          isOpen={isChatOpen}
-          onClose={() => setIsChatOpen(false)}
-          profile={profile}
-          analysis={analysis}
-        />
-      )}
+      {/* Ask Your SkillTwin / n8n Workflow Chat Drawer */}
+      <SkillTwinChat
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        defaultMode={chatMode}
+        profile={profile || {
+          fullName: 'Guest Student',
+          age: '21',
+          email: 'student@example.edu',
+          location: 'Global',
+          college: 'University',
+          degree: 'B.S.',
+          branch: 'Computer Science',
+          currentYear: '3rd Year',
+          skills: ['Python', 'SQL'],
+          hasProjects: 'No',
+          projects: [],
+          hasCertifications: 'No',
+          certifications: [],
+          interests: ['AI'],
+          careerGoal: 'AI Engineer',
+          learningPreference: 'Hands-on Projects',
+          availableTime: '1–2 hours',
+        }}
+        analysis={analysis}
+      />
 
-      {/* Floating Assistant Launcher Button (Bottom Right) */}
-      {hasCompleteTwin && (
+      {/* Floating Chatbot Launcher Button (Bottom Right - Fixed z-[9999] on Every Page) */}
+      <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-[9999] select-none">
         <button
-          onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-6 right-6 z-30 p-3.5 sm:px-4 sm:py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 hover:from-indigo-500 hover:to-violet-600 text-white shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 flex items-center gap-2 transform hover:-translate-y-1 transition duration-200 cursor-pointer"
-          title="Ask Your SkillTwin AI"
+          onClick={() => handleOpenChat('n8n')}
+          className="group relative flex items-center gap-2.5 p-3.5 sm:px-5 sm:py-3.5 rounded-full bg-gradient-to-r from-rose-500 via-indigo-600 to-violet-600 hover:from-rose-600 hover:via-indigo-700 hover:to-violet-700 text-white shadow-2xl shadow-indigo-500/40 hover:shadow-indigo-500/60 ring-2 ring-white/30 dark:ring-slate-800/80 transform hover:-translate-y-1 active:translate-y-0 transition-all duration-200 cursor-pointer"
+          aria-label="Open SkillTwin n8n AI Chatbot"
+          title="Open SkillTwin AI & n8n Chatbot"
         >
-          <div className="relative">
-            <Bot className="w-5 h-5 text-cyan-200" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          </div>
-          <span className="hidden sm:inline text-xs font-bold tracking-wide">
-            Ask SkillTwin
+          {/* Animated beacon ring */}
+          <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900"></span>
           </span>
+
+          <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 group-hover:rotate-12 transition-transform">
+            <Bot className="w-4 h-4 text-white" />
+          </div>
+
+          <div className="hidden sm:flex flex-col text-left leading-tight pr-1">
+            <div className="flex items-center gap-1.5 font-extrabold text-xs tracking-wide">
+              <span>SkillTwin AI</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-400/30 text-rose-100 font-mono font-bold">
+                n8n ⚡
+              </span>
+            </div>
+            <span className="text-[10px] text-indigo-100 font-medium">Ask Career Twin</span>
+          </div>
         </button>
-      )}
+      </div>
 
       {/* Footer */}
       <footer className="border-t border-slate-200/80 dark:border-slate-800/80 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xs py-6 text-center text-xs text-slate-500 dark:text-slate-400">

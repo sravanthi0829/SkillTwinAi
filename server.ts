@@ -804,6 +804,96 @@ Guidelines:
   }
 });
 
+// Route: Proxy to user's n8n workflow chatbot
+app.post('/api/n8n/chat', async (req: Request, res: Response) => {
+  try {
+    const { message, sessionId, webhookUrl, profile } = req.body;
+    if (!message) {
+      res.status(400).json({ error: 'Message is required' });
+      return;
+    }
+
+    const defaultUrls = [
+      webhookUrl,
+      'https://sravsss29.app.n8n.cloud/webhook/0672996e-dfee-4168-a1a2-cd6b434aef26/chat',
+      'https://sravsss29.app.n8n.cloud/webhook-test/0672996e-dfee-4168-a1a2-cd6b434aef26/chat',
+    ].filter(Boolean) as string[];
+
+    const payload = {
+      action: 'sendMessage',
+      chatInput: message,
+      message: message,
+      sessionId: sessionId || `st-session-${Date.now()}`,
+      metadata: {
+        candidateName: profile?.fullName || 'Student',
+        targetRole: profile?.careerGoal || 'Software Engineer',
+        skills: profile?.skills || [],
+        college: profile?.college || '',
+        source: 'SkillTwin AI'
+      }
+    };
+
+    let lastError: any = null;
+    let successfulReply: string | null = null;
+    let usedEndpoint: string = '';
+
+    for (const url of defaultUrls) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json, text/plain, */*'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          const contentType = response.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data: any = await response.json();
+            const text = 
+              data.output || 
+              data.text || 
+              data.message || 
+              data.response || 
+              data.result || 
+              (Array.isArray(data) && data[0]?.output) || 
+              (Array.isArray(data) && data[0]?.message) ||
+              JSON.stringify(data);
+            successfulReply = typeof text === 'string' ? text : JSON.stringify(text);
+          } else {
+            successfulReply = await response.text();
+          }
+          usedEndpoint = url;
+          break;
+        } else {
+          const errText = await response.text();
+          lastError = `Status ${response.status}: ${errText}`;
+        }
+      } catch (err: any) {
+        lastError = err.message;
+      }
+    }
+
+    if (successfulReply) {
+      res.json({ reply: successfulReply, usedUrl: usedEndpoint });
+    } else {
+      // Return clear guidance with workflow link so the student/user can activate their workflow
+      res.status(502).json({
+        error: 'Unable to reach active n8n webhook',
+        details: lastError,
+        workflowUrl: 'https://sravsss29.app.n8n.cloud/workflow/LNrlvTafo4ymbRtP?projectId=Xq3skc603RPxIMGc',
+        tip: 'Make sure your workflow is set to "Active" in n8n Cloud, or click "Test step" / "Listen for test event" if using test mode.'
+      });
+    }
+  } catch (err: any) {
+    console.error('Error in /api/n8n/chat:', err);
+    res.status(500).json({ error: 'Internal error communicating with n8n chatbot', details: err.message });
+  }
+});
+
+
 // Setup Vite middleware in dev or static files in production
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {

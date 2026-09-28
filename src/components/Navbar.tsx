@@ -23,7 +23,7 @@ interface NavbarProps {
   hasProfile: boolean;
   profile: UserProfile | null;
   onReset: () => void;
-  onOpenChat: () => void;
+  onOpenChat: (mode?: 'skilltwin' | 'n8n') => void;
 }
 
 export default function Navbar({
@@ -104,10 +104,21 @@ export default function Navbar({
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
+            {/* n8n Chatbot Button */}
+            <button
+              onClick={() => onOpenChat('n8n')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-rose-500/10 via-orange-500/10 to-amber-500/10 hover:from-rose-500/20 hover:to-orange-500/20 text-rose-700 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/60 transition-all cursor-pointer shadow-xs"
+              title="Open n8n Workflow Chatbot (LNrlvTafo4ymbRtP)"
+            >
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              <span>n8n Bot</span>
+              <span className="text-[10px] px-1 py-0.2 rounded bg-rose-200/60 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 font-mono hidden sm:inline">⚡</span>
+            </button>
+
             {hasProfile && (
               <button
-                onClick={onOpenChat}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-indigo-500/10 to-violet-500/10 hover:from-indigo-500/20 hover:to-violet-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/50 transition-all cursor-pointer shadow-sm"
+                onClick={() => onOpenChat('skilltwin')}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-indigo-500/10 to-violet-500/10 hover:from-indigo-500/20 hover:to-violet-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/50 transition-all cursor-pointer shadow-xs"
               >
                 <MessageSquareText className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                 <span>Ask SkillTwin</span>
